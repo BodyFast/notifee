@@ -855,7 +855,6 @@ class NotificationManager {
               result.onComplete(null, triggerNotificationIds);
             } catch (Exception e) {
               result.onComplete(e, null);
-              return;
             }
           }
 
