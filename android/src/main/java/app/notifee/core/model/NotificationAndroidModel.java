@@ -148,7 +148,11 @@ public class NotificationAndroidModel {
    * @return String
    */
   public @Nullable String getCategory() {
-    return mNotificationAndroidBundle.getString("category");
+    try {
+      return mNotificationAndroidBundle.getString("category");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   /**
@@ -233,7 +237,11 @@ public class NotificationAndroidModel {
    * @return String
    */
   public @Nullable String getTag() {
-    return mNotificationAndroidBundle.getString("tag");
+    try {
+      return mNotificationAndroidBundle.getString("tag");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   /**
@@ -242,7 +250,11 @@ public class NotificationAndroidModel {
    * @return String
    */
   public @Nullable String getGroup() {
-    return mNotificationAndroidBundle.getString("groupId");
+    try {
+      return mNotificationAndroidBundle.getString("groupId");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   /**
@@ -487,7 +499,11 @@ public class NotificationAndroidModel {
    * @return String
    */
   public @Nullable String getShortcutId() {
-    return mNotificationAndroidBundle.getString("shortcutId");
+    try {
+      return mNotificationAndroidBundle.getString("shortcutId");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   /**
@@ -540,7 +556,11 @@ public class NotificationAndroidModel {
    * @return String
    */
   public @Nullable String getSortKey() {
-    return mNotificationAndroidBundle.getString("sortKey");
+    try {
+      return mNotificationAndroidBundle.getString("sortKey");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   /**
@@ -571,7 +591,11 @@ public class NotificationAndroidModel {
    * @return String
    */
   public @Nullable String getTicker() {
-    return mNotificationAndroidBundle.getString("ticker");
+    try {
+      return mNotificationAndroidBundle.getString("ticker");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   /**
@@ -597,11 +621,15 @@ public class NotificationAndroidModel {
   }
 
   public @Nullable String getSound() {
-    if (!mNotificationAndroidBundle.containsKey("sound")) {
+    try {
+      if (!mNotificationAndroidBundle.containsKey("sound")) {
+        return null;
+      }
+
+      return mNotificationAndroidBundle.getString("sound");
+    } catch (Exception e) {
       return null;
     }
-
-    return mNotificationAndroidBundle.getString("sound");
   }
 
   /**

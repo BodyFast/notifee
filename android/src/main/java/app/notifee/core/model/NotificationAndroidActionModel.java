@@ -51,12 +51,20 @@ public class NotificationAndroidActionModel {
    * @return String
    */
   public @NonNull String getTitle() {
-    return Objects.requireNonNull(mNotificationAndroidActionBundle.getString("title"));
+    try {
+      return Objects.requireNonNull(mNotificationAndroidActionBundle.getString("title"));
+    } catch (Exception e) {
+      return "";
+    }
   }
 
   /** Gets the icon of the action */
   public @Nullable String getIcon() {
-    return mNotificationAndroidActionBundle.getString("icon");
+    try {
+      return mNotificationAndroidActionBundle.getString("icon");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   /**
