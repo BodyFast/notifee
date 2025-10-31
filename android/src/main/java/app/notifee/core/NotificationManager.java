@@ -809,18 +809,22 @@ class NotificationManager {
         new FutureCallback<List<WorkDataEntity>>() {
           @Override
           public void onSuccess(List<WorkDataEntity> workDataEntities) {
-            for (WorkDataEntity workDataEntity : workDataEntities) {
-              Bundle triggerNotificationBundle = new Bundle();
+            try {
+              for (WorkDataEntity workDataEntity : workDataEntities) {
+                Bundle triggerNotificationBundle = new Bundle();
 
-              triggerNotificationBundle.putBundle(
-                  "notification", ObjectUtils.bytesToBundle(workDataEntity.getNotification()));
+                triggerNotificationBundle.putBundle(
+                    "notification", ObjectUtils.bytesToBundle(workDataEntity.getNotification()));
 
-              triggerNotificationBundle.putBundle(
-                  "trigger", ObjectUtils.bytesToBundle(workDataEntity.getTrigger()));
-              triggerNotifications.add(triggerNotificationBundle);
+                triggerNotificationBundle.putBundle(
+                    "trigger", ObjectUtils.bytesToBundle(workDataEntity.getTrigger()));
+                triggerNotifications.add(triggerNotificationBundle);
+              }
+
+              result.onComplete(null, triggerNotifications);
+            } catch (Exception e) {
+              result.onComplete(e, null);
             }
-
-            result.onComplete(null, triggerNotifications);
           }
 
           @Override
@@ -839,12 +843,20 @@ class NotificationManager {
         new FutureCallback<List<WorkDataEntity>>() {
           @Override
           public void onSuccess(List<WorkDataEntity> workDataEntities) {
-            List<String> triggerNotificationIds = new ArrayList<String>();
-            for (WorkDataEntity workDataEntity : workDataEntities) {
-              triggerNotificationIds.add(workDataEntity.getId());
-            }
+            try {
+              List<String> triggerNotificationIds = new ArrayList<String>();
+              for (WorkDataEntity workDataEntity : workDataEntities) {
+                String id = workDataEntity.getId();
+                if (id != null && !id.isEmpty()) {
+                  triggerNotificationIds.add(id);
+                }
+              }
 
-            result.onComplete(null, triggerNotificationIds);
+              result.onComplete(null, triggerNotificationIds);
+            } catch (Exception e) {
+              result.onComplete(e, null);
+              return;
+            }
           }
 
           @Override

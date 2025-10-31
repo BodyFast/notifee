@@ -40,19 +40,35 @@ public class NotificationModel {
   }
 
   public @NonNull String getId() {
-    return Objects.requireNonNull(mNotificationBundle.getString("id"));
+    try {
+      return Objects.requireNonNull(mNotificationBundle.getString("id"));
+    } catch (Exception e) {
+      return "";
+    }
   }
 
   public @Nullable String getTitle() {
-    return mNotificationBundle.getString("title");
+    try {
+      return mNotificationBundle.getString("title");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   public @Nullable String getSubTitle() {
-    return mNotificationBundle.getString("subtitle");
+    try {
+      return mNotificationBundle.getString("subtitle");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   public @Nullable String getBody() {
-    return mNotificationBundle.getString("body");
+    try {
+      return mNotificationBundle.getString("body");
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   public @NonNull NotificationAndroidModel getAndroid() {
