@@ -549,12 +549,5 @@ Pods/*
 **/Pods/**
 .tmp
 
-
-# generated files
-src/version.ts
-package-lock.json
-yarn.lock
-ios/NotifeeCore
-
 # Generated directory when running refresh-example.sh
 TEMP
