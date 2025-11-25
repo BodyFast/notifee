@@ -1,9 +1,4 @@
 version.ts
-node_modules
-scripts/
-coverage
-docs
 dist
-android
-packages/**/plugin/build/**
-sendPushNotification.js
+node_modules
+plugin/build

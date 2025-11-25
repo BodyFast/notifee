@@ -1,4 +1,3 @@
 *.xcodeproj binary
 *.xcworkspace binary
-docs/typedoc.json merge=theirs linguist-vendored
-docs/typedoc.min.json merge=theirs linguist-vendored
+*.framework binary

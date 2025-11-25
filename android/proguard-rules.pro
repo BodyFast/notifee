@@ -1,13 +1,16 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+-keep class io.invertase.notifee.NotifeeEventSubscriber
+-keep class io.invertase.notifee.NotifeeInitProvider
+-keepnames class io.invertase.notifee.NotifeePackage
+-keepnames class io.invertase.notifee.NotifeeApiModule
 
--printmapping javasource.map
--renamesourcefileattribute SourceFile
--keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,EnclosingMethod
+# We depend on certain classes to exist under their names for dynamic
+# class-loading to work. We use this to handle new arch / old arch backwards
+# compatibility despite the class names moving around
+-keep class com.facebook.react.defaults.DefaultNewArchitectureEntryPoint { *; }
+-keep class com.facebook.react.ReactApplication { *; }
+-keep class com.facebook.react.ReactHost { *; }
+-keep class * extends com.facebook.react.ReactHost { *; }
+-keepnames class com.facebook.react.ReactActivity
 
 # Preserve all annotations.
 -keepattributes *Annotation*
@@ -59,15 +62,6 @@
     public <init>(android.content.Context,androidx.work.WorkerParameters);
 }
 
-# JWT
--keep class io.jsonwebtoken.** { *; }
--keepnames class io.jsonwebtoken.* { *; }
--keepnames interface io.jsonwebtoken.* { *; }
-
--keep class org.bouncycastle.** { *; }
--keepnames class org.bouncycastle.** { *; }
--dontwarn org.bouncycastle.**
-
 # EventBus
 -keepclassmembers class * {
     @org.greenrobot.eventbus.Subscribe <methods>;
@@ -86,6 +80,3 @@
 -dontwarn org.conscrypt.**
 # A resource is loaded with a relative path so the package of this class must be preserved.
 -keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
-
-# -----
--repackageclasses 'n.o.t.i.f.e.e'

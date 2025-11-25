@@ -1,99 +1,90 @@
-import org.gradle.internal.jvm.Jvm
+import java.nio.file.Paths
 
 buildscript {
-  repositories {
-    google()
-    mavenCentral()
-  }
-  dependencies {
-    classpath 'com.android.tools.build:gradle:7.0.3'
+  // The Android Gradle plugin is only required when opening the android folder stand-alone.
+  // This avoids unnecessary downloads and potential conflicts when the library is included as a
+  // module dependency in an application project.
+  if (project == rootProject) {
+    repositories {
+      google()
+      mavenCentral()
+    }
+
+    dependencies {
+      classpath("com.android.tools.build:gradle:7.0.3")
+    }
   }
 }
 
-apply plugin: 'com.android.library'
+plugins {
+  id "io.invertase.gradle.build" version "1.5"
+}
 
-
-ext {
-
-  jvmVersion = Jvm.current().javaVersion.majorVersion
-  if (jvmVersion != "8" && jvmVersion != "11" && jvmVersion != "17" && jvmVersion != "21") {
-    println "\n\n\n"
-    println "**************************************************************************************************************"
-    println "\n\n\n"
-    println "ERROR: Notifee builds with JVM LTS and current releases (currently major version 11, 17, or 21)."
-    println "  Incompatible major version detected: '" + jvmVersion + "'"
-    println "\n\n\n"
-    println "**************************************************************************************************************"
-    println "\n\n\n"
-    System.exit(1)
+// https://github.com/facebook/react-native/blob/a70354df12ef71aec08583cca4f1fed5fb77d874/ReactAndroid/build.gradle#L168-L201
+def findNodeModulePath(baseDir, packageName) {
+  def basePath = baseDir.toPath().normalize()
+  // Node's module resolution algorithm searches up to the root directory,
+  // after which the base path will be null
+  while (basePath) {
+    def candidatePath = Paths.get(basePath.toString(), "node_modules", packageName)
+    if (candidatePath.toFile().exists()) {
+      return candidatePath.toString()
+    }
+    basePath = basePath.getParent()
   }
-  ciBuild = System.getenv("CI") == "true" // works for Travis CI or Github Actions
+  return null
+}
 
-  // Virtualized Environment like CI may report host CPU counts vs guest, but runs 2 cores
-  // everyone else gets 50% of cores to account for SMT which doesn't help this workload
-  gradleTestMaxParallelForks = 1
-  if (!ciBuild) {
-    gradleTestMaxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+def notifeeDir = findNodeModulePath(projectDir, "@notifee/react-native") ?: "$rootDir/../node_modules/@notifee/react-native"
+println ":${project.name} @notifee/react-native found at $notifeeDir"
+
+if (project.hasProperty('reactNativeProjects')) {
+  reactNativeProjects.each { dependent ->
+    project.evaluationDependsOn(dependent)
   }
+} else {
+  project.evaluationDependsOn(':app')
+}
+
+project.ext {
+  set('react-native', [
+    versions: [
+      android: [
+        minSdk    : 20,
+        targetSdk : 33,
+        compileSdk: 34,
+        // optional as gradle.buildTools comes with one by default
+        // overriding here though to match the version RN uses
+        // buildTools: "29.0.2"
+      ],
+    ],
+  ])
 }
 
 android {
-  compileSdkVersion 34
-  testOptions {
-    unitTests.returnDefaultValues = true
+  def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+  // Check AGP version for backward compatibility w/react-native versions still on gradle plugin 6
+  if (agpVersion.tokenize('.')[0].toInteger() >= 7) {
+    namespace = "io.invertase.notifee"
   }
+
   defaultConfig {
-    minSdkVersion 20
-    targetSdkVersion 33
-    versionCode 1
-    versionName "1.0"
-
-    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles 'consumer-rules.pro'
-
-    javaCompileOptions {
-      annotationProcessorOptions {
-        arguments = ["room.schemaLocation":
-                             "$projectDir/schemas".toString(),
-                             eventBusIndex: 'app.notifee.core.EventBusIndex']
-      }
-    }
+    multiDexEnabled true
   }
-
-  sourceSets {
-      // Adds exported schema location as test app assets.
-      androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
+  lintOptions {
+    disable 'GradleCompatible'
+    abortOnError false
   }
-
-  buildTypes {
-    release {
-      minifyEnabled true
-      debuggable false
-      jniDebuggable false
-      zipAlignEnabled true
-      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-    }
-  }
-
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
-
-  testOptions.unitTests.all {
-    testLogging {
-      events "failed", "skipped"
-      showStackTraces = true
-      exceptionFormat = "full"
+  buildTypes {
+    release {
+      consumerProguardFiles 'proguard-rules.pro'
     }
-
-    maxParallelForks = gradleTestMaxParallelForks
-    forkEvery = 40
-    maxHeapSize = "2048m"
-    minHeapSize = "1024m"
-    systemProperties['junit.jupiter.execution.parallel.enabled'] = true
-    systemProperties['junit.jupiter.execution.parallel.mode.default'] = "concurrent"
   }
+  compileSdkVersion = 34
 }
 
 repositories {
@@ -102,48 +93,27 @@ repositories {
 }
 
 dependencies {
-
-  api 'androidx.annotation:annotation:1.3.0' // https://developer.android.com/jetpack/androidx/releases/annotation
-  api 'androidx.concurrent:concurrent-futures:1.1.0' // https://developer.android.com/jetpack/androidx/releases/concurrent
-  api 'androidx.work:work-runtime:2.8.0' // https://developer.android.com/jetpack/androidx/releases/work
-  api 'com.facebook.fresco:fresco:2.6.0' // https://github.com/facebook/fresco/releases
+  if (findProject(':notifee_core')) {
+    implementation findProject(':notifee_core')
+  } else {
+    implementation(group: 'app.notifee', name:'core', version: '+')
+  }
 
   implementation("com.google.guava:guava:33.3.1-android") // https://github.com/google/guava
-  implementation 'androidx.core:core:1.6.0'
-
-  def room_version = '2.5.0' // https://developer.android.com/jetpack/androidx/releases/room
-  implementation "androidx.room:room-runtime:$room_version"
-  annotationProcessor "androidx.room:room-compiler:$room_version"
-
-  def eventbus_version = '3.3.1' // https://github.com/greenrobot/EventBus/releases
-  api "org.greenrobot:eventbus:$eventbus_version"
-  annotationProcessor "org.greenrobot:eventbus-annotation-processor:$eventbus_version"
-
-  testImplementation 'junit:junit:4.13.2' // https://github.com/junit-team/junit4/releases
-  androidTestImplementation 'androidx.test.ext:junit:1.1.3' // https://developer.android.com/jetpack/androidx/releases/test
-  androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0' // see above
-  androidTestImplementation "androidx.room:room-testing:$room_version"
-  androidTestImplementation "androidx.test:monitor:1.4.0"
+  implementation 'androidx.concurrent:concurrent-futures:1.1.0' // https://developer.android.com/jetpack/androidx/releases/concurrent
+  implementation 'androidx.work:work-runtime:2.8.0' // https://developer.android.com/jetpack/androidx/releases/work
+  implementation 'org.greenrobot:eventbus:3.3.1' // https://github.com/greenrobot/EventBus/releases
+  implementation 'androidx.lifecycle:lifecycle-process:2.3.1'
 }
 
-apply plugin: 'maven-publish'
-
-publishing {
-    publications {
-        aar(MavenPublication) {
-            project.tasks.publishAarPublicationToMavenLocal.dependsOn("assembleRelease")
-            groupId 'app.notifee'
-            artifactId 'core'
-            version '202108261754'
-            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
-        }
+ReactNative.shared.applyPackageVersion()
+ReactNative.shared.applyDefaultExcludes()
+ReactNative.module.applyAndroidVersions()
+ReactNative.module.applyReactNativeDependency("api")
+rootProject.allprojects {
+  repositories {
+    maven {
+      url "$notifeeDir/android/libs"
     }
-
-    repositories {
-        maven {
-            url = "$rootDir/../packages/react-native/android/libs/"
-        }
-        project.tasks.publishAarPublicationToMavenRepository.dependsOn("assembleRelease")
-
-    }
+  }
 }
