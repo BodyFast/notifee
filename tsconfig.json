@@ -1,37 +1,23 @@
 {
-  "include": [
-    "packages/react-native/src/**/*.ts",
-    "tests_react_native/__tests__",
-    "tests_react_native/example"
-  ],
   "compilerOptions": {
-    "noEmit": true,
-    "allowJs": true,
-    "target": "es6",
-    "isolatedModules": true,
+    "target": "esnext",
     "module": "commonjs",
+    "lib": ["esnext"],
+    "allowJs": false,
+    "jsx": "react-native",
     "declaration": true,
-    "importHelpers": true,
-    "jsx": "react",
     "sourceMap": true,
+    "listEmittedFiles": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": false,
+    "isolatedModules": false,
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "preserveConstEnums": true,
-    "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    "skipLibCheck": true,
-    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "lib": [
-      "es6"
-    ]
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
-  "exclude": [
-    "node_modules",
-    "babel.config.js",
-    "metro.config.js",
-    "tests_react_native/jest.config.js",
-  ]
+  "exclude": ["node_modules", "./src/__mocks__"],
+  "include": ["./src"]
 }
